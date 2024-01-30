@@ -6,9 +6,9 @@ def fibonnaci(n):
     return series
 
 def sum_n_fibonnaci_numbers(n):
-    series = fibonnaci(n)
+    s = fibonnaci(n)
     addition = 0
-    for i in series:
+    for i in s:
         addition += i
     return addition
 print("The sum of the first 5 terms is", sum_n_fibonnaci_numbers(6))

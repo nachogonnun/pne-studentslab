@@ -1,7 +1,7 @@
 
-res = 0
+addition = 0
 
 for i in range(1, 21):
-    res += i
+    addition += i
 
-print("Total sum: ", res)
+print("Total sum: ", addition)

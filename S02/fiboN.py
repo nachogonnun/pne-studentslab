@@ -5,6 +5,6 @@ def fibonnacin(n):
         series.append(next_number)
     return series
 n = fibonnacin(20)
-print("The 5th fibonnaci number is:", n[5])
-print("The 10th fibonnaci number is:", n[10])
-print("The 15th fibonnaci number is:", n[15])
+print("The 5th Fibonnaci number is:", n[5])
+print("The 10th Fibonnaci number is:", n[10])
+print("The 15th Fibonnaci number is:", n[15])
