@@ -11,3 +11,4 @@ for i in body[1:]:
         if nucleotide in n:
             total += 1
 print(" The total number of nucleotides is: ", total)
+
