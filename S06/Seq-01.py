@@ -17,6 +17,7 @@ class Seq:
         return len(self.strbases)
 
 
+
 # --- Main program
 s1 = Seq("AGTACACTGGT")
 s2 = Seq("CGTAAC")
