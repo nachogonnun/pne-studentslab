@@ -8,7 +8,7 @@ bases = ["A", "C", "G", "T"]
 for gene in genes:
     filename = "../S04/sequences/" + gene + ".txt"
     file_contents = Path(filename).read_text()
-    seq = Seq(file_contents.replace("\n", ""))
+    seq = Seq()
     seq.read_fasta(file_contents)
 
     max_count = 0
