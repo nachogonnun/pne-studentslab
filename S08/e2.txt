@@ -1,0 +1,8 @@
+
+212.128.225.94 , f-l3208, PING: 0,026 ms
+10.1.151.12, smartphone, PING: 53,8 ms
+8.8.8.8 , google, PING: 4.74 ms
+212.128.240.50, www.urjc.es, PING: 4,07 ms
+140.82.121.4, github.com, PING: 36,5 ms
+185.15.58.224, wikipedia.org, PING: 29,4 ms
+203.209.197.14, newdomain.com.au, PING: 1001 ms
