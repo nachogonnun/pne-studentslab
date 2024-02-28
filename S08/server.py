@@ -34,7 +34,7 @@ try:
         # Send the message
         message = "HELLO FROM NACHO'S SERVER\n"
         send_bytes = str.encode(message)
-        # We must write bytes, not a string
+        clientsocket.send(send_bytes)
         clientsocket.close()
 
 except socket.error:
