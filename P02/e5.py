@@ -19,5 +19,11 @@ file_contents = Path(FILENAME).read_text()
 s = Seq()
 sequence = s.read_fasta(file_contents)
 print("GENE FRAT1:", sequence)
-for i in sequence:
-     s_1 =
+segments = []
+for i in range(0, len(sequence) + 1):
+     segment = sequence[i:i + 10]
+     segments.append(segment)
+for i in segments[0:5]:
+     msg = f"Segment {segments.index(i) + 1}: {i}"
+     print(msg)
+     print(c.talk(msg))
