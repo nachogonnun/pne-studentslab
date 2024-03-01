@@ -23,11 +23,16 @@ file_contents = Path(FILENAME).read_text()
 s = Seq()
 sequence = s.read_fasta(file_contents)
 print("GENE FRAT1:", sequence)
+
 segments = []
 for i in range(0, len(sequence) + 1):
      segment = sequence[i:i + 10]
      segments.append(segment)
 for i in segments[0:10]:
      msg = f"Segment {segments.index(i) + 1}: {i}"
-     print(msg)
-     print(c_even.talk(msg))
+     if segments.index(i) % 2 == 0:
+          print(msg)
+          print(c_even.talk(msg))
+     else:
+          print(msg)
+          print(c_odd.talk(msg))
