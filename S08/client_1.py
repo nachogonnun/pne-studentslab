@@ -3,8 +3,8 @@ import socket
 # SERVER IP, PORT
 # Write here the correct parameter for connecting to the
 # Teacher's server
-PORT = 8081
-IP = "212.128.255.64" # it depends on the machine the server is running
+PORT = 8080
+IP = "192.168.0.20" # it depends on the machine the server is running
 
 
 # First, create the socket
@@ -16,7 +16,7 @@ s.connect((IP, PORT))
 
 # Send data. No strings can be sent, only bytes
 # It necesary to encode the string into bytes
-s.send(str.encode("jajajaj"))
+s.send(str.encode("GENE U5"))
 
 # Close the socket
 s.close()
