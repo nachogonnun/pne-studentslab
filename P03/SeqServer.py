@@ -1,17 +1,6 @@
 import socket
-
+from Seq1 import *
 class ServerSeq:
-
-    def ping(self):
-        print("Ping command!")
-        return "OK!"
-
-    def return_response(self, msg):
-        if msg == "PING":
-            print("PING")
-            return self.ping()
-        else:
-            return "Unknown command"
 
     def __init__(self):
         PORT = 8081
@@ -40,7 +29,43 @@ class ServerSeq:
             print("Server stopped by the user")
             server_socket.close()
 
+    def return_response(self, msg):
+        if msg.startswith("PING"):
+            return self.ping_response()
+
+        elif msg.startswith("GET"):
+            return self.get_response(msg)
+
+        elif msg.startswith("INFO"):
+            return self.info_response(msg)
+
+        else:
+            return "Unknown command"
+    def ping_response(self):
+        print("Ping command!")
+        return "OK!\n"
+
+    def get_response(self, msg):
+        sequences = ["ACGTACGT", "ACCTTCCA", "TGGCAACG", "ACGGTGCT"]
+        for i in msg:
+            if i.isdigit():
+                if 0 <= int(i) <= 3:
+                    n = sequences[int(i)]
+                    print("GET")
+                    print(n)
+                    return n + "\n"
+            else:
+                return "Invalid command!"
+    def info_response(self, msg):
+        base = ["A", "C", "G", "T"]
+        sequence = Seq(msg.replace("INFO", "").strip())
+        print("INFO")
+        print("Sequence:", sequence)
+        print("Total length:", sequence.len())
+        info = sequence.count()
+        print(info)
+        return info
+
 
 server = ServerSeq()
 print(server)
-
