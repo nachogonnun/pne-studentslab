@@ -12,7 +12,7 @@ class Client:
         import socket
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.ip, self.port))
-        s.send(str.encode(msg))
+        s.send(str.encode(str(msg)))
         response = s.recv(2048).decode("utf-8")
         s.close()
         return response

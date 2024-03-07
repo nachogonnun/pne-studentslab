@@ -3,7 +3,7 @@ from Seq1 import *
 from pathlib import Path
 class ServerSeq:
     def __init__(self):
-        PORT = 8080
+        PORT = 8081
         IP = "192.168.0.20"
 
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -58,10 +58,11 @@ class ServerSeq:
 
     def get_response(self, msg):
         sequences = ["ACGTACGT", "ACCTTCCA", "TGGCAACG", "ACGGTGCT"]
-        for i in msg:
-            if i.isdigit():
-                if 0 <= int(i) <= 3:
-                    n = sequences[int(i)]
+        parts  = msg.split()
+        for i in parts:
+            if parts[1].isdigit():
+                if 0 <= int(parts[1]) <= 3:
+                    n = sequences[int(parts[1])]
                     print("GET")
                     print(n)
                     return n + "\n"
@@ -78,7 +79,7 @@ class ServerSeq:
         for base, number in sequence.count().items():
             percentaje = number / total_bases * 100
             print(f"{base}: {number} ({percentaje}%)")
-            response += f"{base}: {number} ({percentaje})\n"
+            response += f"{base}: {number} ({percentaje} %)\n"
         return response
 
     def complement_response(self, msg):
