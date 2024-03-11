@@ -3,8 +3,8 @@ from Seq1 import *
 from pathlib import Path
 class ServerSeq:
     def __init__(self):
-        PORT = 8081
-        IP = "192.168.0.20"
+        PORT = 2001
+        IP = "127.0.0.1"
 
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
@@ -77,22 +77,22 @@ class ServerSeq:
         print("Sequence:", sequence)
         print("Total length:", total_bases)
         for base, number in sequence.count().items():
-            percentaje = number / total_bases * 100
-            print(f"{base}: {number} ({percentaje}%)")
-            response += f"{base}: {number} ({percentaje} %)\n"
+            percentage = number / total_bases * 100
+            print(f"{base}: {number} ({percentage}%)")
+            response += f"{base}: {number} ({percentage} %)\n"
         return response
 
     def complement_response(self, msg):
         sequence = Seq(msg.replace("COMP", "").strip())
         print("COMP")
         print(sequence.complement())
-        return sequence.complement()
+        return sequence.complement() + "\n"
 
     def reverve_response(self, msg):
         sequence = Seq(msg.replace("REV", "").strip())
         print("REV")
         print(sequence.reverse())
-        return sequence.reverse()
+        return sequence.reverse() + "\n"
 
     def gen_response(self, msg):
         gene_name = msg.replace("GENE", "").strip()
@@ -103,7 +103,7 @@ class ServerSeq:
         s.read_fasta(file_contents)
         print("GENE")
         print(str(s))
-        return str(s)
+        return str(s) + "\n"
 
 server = ServerSeq()
 print(server)

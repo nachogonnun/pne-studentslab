@@ -3,8 +3,8 @@ from Client0 import *
 
 print("-------PRACTICE 3 EXERCISE 7--------")
 
-IP = "192.168.0.20"
-PORT = 8081
+IP = "127.0.0.1"
+PORT = 2001
 
 c = Client(IP, PORT)
 
