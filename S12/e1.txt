@@ -1,0 +1,18 @@
+URL 1 =  http://127.0.0.1:8080/hello
+
+- REQUEST LINE: GET /hello HTTP/1.1
+- PATH: hello
+
+URL 2 =  http://127.0.0.1:8080/file.html
+
+- REQUEST LINE: GET /file.html HTTP/1.1
+- PATH: file.html
+
+URL 3 = http://127.0.0.1:8080/hi/there?name=virus&type=corona
+
+- REQUEST LINE: GET /hi/there?name=virus&type=corona HTTP/1.1
+- PATH: hi/there?name=virus&type=corona
+
+What should be the URL that we have to write in the browser for accessing the /dna/u5 resource?
+
+- URL U5 = http://127.0.0.1:8080/dna/u5
