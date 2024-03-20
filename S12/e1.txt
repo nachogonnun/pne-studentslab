@@ -15,4 +15,4 @@ URL 3 = http://127.0.0.1:8080/hi/there?name=virus&type=corona
 
 What should be the URL that we have to write in the browser for accessing the /dna/u5 resource?
 
-- URL U5 = http://127.0.0.1:8080/dna/u5
+- URL U5 = http://127.0.0.1:8080/dna/u5 HTTP/1.1
