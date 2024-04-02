@@ -23,8 +23,17 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
 
         url = self.requestline.split(" ")[1]
 
-        if url == "/":
+        if url == "/" or url == "/index.html":
             contents = Path("../S14/index.html").read_text()
+            body = contents
+        elif url == "/pink.html":
+            contents = Path("../S14/pink.html").read_text()
+            body = contents
+        elif url == "/blue.html":
+            contents = Path("../S14/blue.html").read_text()
+            body = contents
+        elif url == "/green.html":
+            contents = Path("../S14/green.html").read_text()
             body = contents
         else:
             contents = Path("../P04/html/info/error.html").read_text()
