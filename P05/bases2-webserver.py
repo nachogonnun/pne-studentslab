@@ -26,25 +26,13 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         if url == "/" or url == "/index.html":
             contents = Path("../P05/html/info/index.html").read_text()
             body = contents
-        elif url == "/info/A.html":
-            contents = Path("../P05/html/info/A.html").read_text()
-            body = contents
-        elif url == "/info/C.html":
-            contents = Path("../P05/html/info/C.html").read_text()
-            body = contents
-        elif url == "/info/G.html":
-            contents = Path("../P05/html/info/G.html").read_text()
-            body = contents
-        elif url == "/info/T.html":
-            contents = Path("../P05/html/info/T.html").read_text()
-            body = contents
-        elif url == "/info/filename.html":
-            contents = Path("../P05/html/info/filename.html").read_text()
-            body = contents
-
         else:
-            contents = Path("../P04/html/info/error.html").read_text()
-            body = contents
+            try:
+                contents = Path("../P05/html" + url).read_text()
+                body = contents
+            except FileNotFoundError:
+                contents = Path("../P04/html/info/error.html").read_text()
+                body = contents
         # Generating the response message
         self.send_response(200)  # -- Status line: OK!
 
