@@ -13,7 +13,7 @@ PORT = 8080
 socketserver.TCPServer.allow_reuse_address = True
 
 def read_html_file(filename):
-    contents = Path("html/" + filename).read_text()
+    contents = Path(filename).read_text()
     contents = j.Template(contents)
     return contents
 
@@ -37,14 +37,18 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         arguments = parse_qs(url_path.query)
 
         if path == "/":
-            contents = Path('html/form-1.html').read_text()
+            contents = Path("form-3.html").read_text()
 
         elif path == "/echo":
-            msg = arguments["msg"][0]
-            contents = read_html_file('form-e1.html').render(context={"todisplay": msg})
+            if len(arguments) <= 1:
+                msg = arguments["msg"][0]
+                contents = read_html_file('form-e1.html').render(context={"todisplay": msg})
+            else:
+                msg = arguments["msg"][0]
+                contents = read_html_file('form-e2.html').render(context={"todisplay": msg})
 
         else:
-            contents = Path('html/error.html').read_text()
+            contents = Path("error.html").read_text()
 
         # Generating the response message
         self.send_response(200)  # -- Status line: OK!
