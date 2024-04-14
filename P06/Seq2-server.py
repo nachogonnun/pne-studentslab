@@ -36,19 +36,19 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         path = url_path.path  # we get it from here
         arguments = parse_qs(url_path.query)
 
+        sequences = ["ACCTCCTCTCCAGCAATGCCAACCCCAGTCCAGGCCCCCATCCGCCCAGGATCTCGATCA", "AAAAACATTAATCTGTGGCCTTTCTTTGCCATTTCCAACTCTGCCACCTCCATCGAACGA", "CAAGGTCCCCTTCTTCCTTTCCATTCCCGTCAGCTTCATTTCCCTAATCTCCGTACAAAT", "CCCTAGCCTGACTCCCTTTCCTTTCCATCCTCACCAGACGCCCGCATGCCGGACCTCAAA", "AGCGCAAACGCTAAAAACCGGTTGAGTTGACGCACGGAGAGAAGGGGTGTGTGGGTGGGT"]
+
         if path == "/":
-            contents = Path("form-3.html").read_text()
+            contents = Path("html/index.html").read_text()
 
-        elif path == "/echo":
-            if len(arguments) <= 1:
-                msg = arguments["msg"][0]
-                contents = read_html_file('form-e1.html').render(context={"todisplay": msg})
-            else:
-                msg = arguments["msg"][0]
-                contents = read_html_file('form-e2.html').render(context={"todisplay": msg})
+        elif path == "/ping":
+            contents = Path("html/ping.html").read_text()
+        elif path == "/get":
+            for seq in sequences:
 
+            contents = Path("html/get.html").read_text()
         else:
-            contents = Path("error.html").read_text()
+            contents = Path("html/error.html").read_text()
 
         # Generating the response message
         self.send_response(200)  # -- Status line: OK!

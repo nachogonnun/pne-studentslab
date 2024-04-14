@@ -58,7 +58,7 @@ class ServerSeq:
 
     def get_response(self, msg):
         sequences = ["ACGTACGT", "ACCTTCCA", "TGGCAACG", "ACGGTGCT"]
-        parts  = msg.split()
+        parts = msg.split()
         for i in parts:
             if parts[1].isdigit():
                 if 0 <= int(parts[1]) <= 3:
