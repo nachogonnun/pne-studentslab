@@ -4,6 +4,7 @@ import termcolor
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 import jinja2 as j
+from Seq1 import *
 
 # Define the Server's port
 PORT = 8080
@@ -16,6 +17,17 @@ def read_html_file(filename):
     contents = Path(filename).read_text()
     contents = j.Template(contents)
     return contents
+
+def info_seq(seq):
+    bases = "ACGT"
+    response = ""
+    response += f"Total length:{seq.len()}<br>"
+    for base, number in seq.count().items():
+        percentage = number / seq.len() * 100
+        print(f"{base}: {number} ({percentage}%)")
+        response += f"{base}: {number} ({percentage} %)<br>"
+    return response
+
 
 
   # provide a dictionary to build the form
@@ -62,6 +74,19 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                     for line in sequence:
                         final_sequence += line
                     contents = read_html_file("html/gene.html").render(context={"todisplay": final_sequence[1:], "GENE": gene})
+
+        elif path == "/operations":
+            seq = Seq(arguments["sequence"][0])
+            calculation = arguments["operation"][0]
+            if calculation == "Rev":
+                msg = seq.reverse()
+                contents = read_html_file("html/operation.html").render(context={"todisplay": seq, "todisplay2": calculation, "todisplay3": msg})
+            elif calculation == "Comp":
+                msg = seq.complement()
+                contents = read_html_file("html/operation.html").render(context={"todisplay": seq, "todisplay2": calculation, "todisplay3": msg})
+            elif calculation == "Info":
+                msg = info_seq(seq)
+                contents = read_html_file("html/operation.html").render(context={"todisplay": seq, "todisplay2": calculation, "todisplay3": msg})
         else:
             contents = Path("html/error.html").read_text()
 
