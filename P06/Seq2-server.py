@@ -37,16 +37,31 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         arguments = parse_qs(url_path.query)
 
         sequences = ["ACCTCCTCTCCAGCAATGCCAACCCCAGTCCAGGCCCCCATCCGCCCAGGATCTCGATCA", "AAAAACATTAATCTGTGGCCTTTCTTTGCCATTTCCAACTCTGCCACCTCCATCGAACGA", "CAAGGTCCCCTTCTTCCTTTCCATTCCCGTCAGCTTCATTTCCCTAATCTCCGTACAAAT", "CCCTAGCCTGACTCCCTTTCCTTTCCATCCTCACCAGACGCCCGCATGCCGGACCTCAAA", "AGCGCAAACGCTAAAAACCGGTTGAGTTGACGCACGGAGAGAAGGGGTGTGTGGGTGGGT"]
-
+        genes = ["U5", "ADA", "FRAT1", "FXN", "RNU6_269P"]
         if path == "/":
             contents = Path("html/index.html").read_text()
-
         elif path == "/ping":
             contents = Path("html/ping.html").read_text()
-        elif path == "/get":
-            for seq in sequences:
 
-            contents = Path("html/get.html").read_text()
+        elif path == "/get":
+            contents = ""
+            option = arguments.get("n")[0]
+            for i in range(0, 5):
+                if option == str(i):
+                    contents = read_html_file("html/get.html").render(context={"todisplay": sequences[i], "option":option})
+
+        elif path == "/gene":
+            contents = ""
+            final_sequence = ""
+            gene = arguments.get("name")[0]
+            for i in range(0, 5):
+                if gene == genes[i]:
+                    filename = "../S04/sequences/" + gene + ".txt"
+                    sequence = Path(filename).read_text()
+                    sequence = sequence.split("\n")[1:]
+                    for line in sequence:
+                        final_sequence += line
+                    contents = read_html_file("html/gene.html").render(context={"todisplay": final_sequence[1:], "GENE": gene})
         else:
             contents = Path("html/error.html").read_text()
 
