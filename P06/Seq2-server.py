@@ -60,7 +60,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             option = arguments.get("n")[0]
             for i in range(0, 5):
                 if option == str(i):
-                    contents = read_html_file("html/get.html").render(context={"todisplay": sequences[i], "option":option})
+                    contents = read_html_file("html/get.html").render(context={"todisplay": sequences[i], "option": option})
 
         elif path == "/gene":
             contents = ""
