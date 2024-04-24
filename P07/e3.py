@@ -1,8 +1,9 @@
 import http.client
 import json
+from e2 import GENES
 
 SERVER = "rest.ensembl.org"
-ENDPOINT = "/sequence/id/ENSG00000207552?content-type=application/json"
+ENDPOINT = "/sequence/id/" + GENES["MIR633"] + "?content-type=application/json"
 URL = SERVER + ENDPOINT
 
 print()
@@ -22,6 +23,7 @@ try:
     print("Gene: MIR633")
     print("Description:", info["desc"])
     print("Sequence:", info["seq"])
+
 except ConnectionRefusedError:
     print("ERROR! Cannot connect to the Server")
     exit()
