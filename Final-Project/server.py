@@ -20,7 +20,7 @@ def read_html_file(filename):
 
 def get_connection(endpoint):
     SERVER = "rest.ensembl.org"
-    PARAMS = "?content-type=application/json"
+    PARAMS = "content-type=application/json"
     conn = http.client.HTTPConnection(SERVER)
     conn.request("GET", endpoint + PARAMS)
     response = conn.getresponse()
@@ -28,19 +28,18 @@ def get_connection(endpoint):
     return data
 
 def get_gene_info(gene):
-    gene_id_info = get_connection("/lookup/symbol/human/" + gene)
+    gene_id_info = get_connection("/lookup/symbol/human/" + gene + "?")
     gene_id_info_2 = json.loads(gene_id_info)
     gene_id = gene_id_info_2["id"]
     region = gene_id_info_2["seq_region_name"]
     start = gene_id_info_2["start"]
     end = gene_id_info_2["end"]
-    gene_seq_info = get_connection("/sequence/id/" + gene_id)
+    gene_seq_info = get_connection("/sequence/id/" + gene_id + "?")
     gene_seq_info_2 = json.loads(gene_seq_info)
     sequence = gene_seq_info_2["seq"]
     return gene_id, sequence, region, start, end
 
 def info_seq(seq):
-    bases = "ACGT"
     response = ""
     response += f"Total length:{seq.len()}<br>"
     for base, number in seq.count().items():
@@ -65,7 +64,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             if "limit" not in arguments:
                 contents = Path("html/error.html").read_text()
             else:
-                data = get_connection("/info/species")
+                data = get_connection("/info/species?")
 
                 try:
                     limit = arguments["limit"][0]
@@ -88,9 +87,9 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             else:
                 name_specie = arguments["species"][0]
                 url_name = name_specie.replace(" ", "%20")
-                data_1 = get_connection("/info/species")
+                data_1 = get_connection("/info/species?")
                 info_1 = json.loads(data_1)
-                data_2 = get_connection("/info/assembly/" + url_name)
+                data_2 = get_connection("/info/assembly/" + url_name + "?")
 
                 try:
                     species_names = []
@@ -113,9 +112,9 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 name_specie2 = arguments["species"][0]
                 chromosome = arguments["chromo"][0]
                 url_name = name_specie2.replace(" ", "%20")
-                data_1 = get_connection("/info/species")
+                data_1 = get_connection("/info/species?")
                 info_1 = json.loads(data_1)
-                data_2 = get_connection("/info/assembly/" + url_name)
+                data_2 = get_connection("/info/assembly/" + url_name + "?")
                 try:
                     species_names2 = []
                     for specie in info_1["species"]:
@@ -137,7 +136,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             gene = arguments["gene"][0]
             gene_id, sequence, region, start, end = get_gene_info(gene)
             contents = read_html_file("html/geneSeq.html").render(
-                context= {"seq": sequence, "gene": gene})
+                context={"seq": sequence, "gene": gene})
         elif path == "/geneInfo":
             gene = arguments["gene"][0]
             gene_id, sequence, region, start, end = get_gene_info(gene)
@@ -150,6 +149,19 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             seq = Seq(sequence)
             contents = read_html_file("html/geneCalc.html").render(
                 context={"seq": info_seq(seq), "gene": gene})
+        elif path == "/geneList":
+            gene_list = []
+            chromosome = arguments["chromo"][0]
+            startpoint = arguments["start"][0]
+            endpoint = arguments["end"][0]
+            genes_data = get_connection(
+                "/overlap/region/human/" + chromosome + ":" + startpoint + "-" + endpoint + "?feature=gene&")
+            gene_info = json.loads(genes_data)
+            for genes in gene_info:
+                gene_list.append(genes["external_name"])
+            contents = read_html_file("html/geneList.html").render(
+                context={"list": gene_list, "start": startpoint, "end": endpoint})
+        # <----------------------| MEDIUM LEVEL |---------------------->
         else:
             contents = Path("html/error.html").read_text()
 

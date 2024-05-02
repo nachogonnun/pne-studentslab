@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GENE LIST</title>
+</head>
+<h1>GENES LIST BETWEEN TWO POINTS INSIDE A CHROMOSOME</h1>
+<body style="background-color: LightBlue;">
+    The genes oe gene between {{context.start}} and {{context.end}} are:
+    <ul>
+        {% for gene in context.list %}
+        <li>{{ gene }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
