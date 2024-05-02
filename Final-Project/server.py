@@ -5,6 +5,7 @@ import socketserver
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 import jinja2 as j
+from Seq1 import *
 
 PORT = 8080
 
@@ -25,6 +26,28 @@ def get_connection(endpoint):
     response = conn.getresponse()
     data = response.read().decode("utf-8")
     return data
+
+def get_gene_info(gene):
+    gene_id_info = get_connection("/lookup/symbol/human/" + gene)
+    gene_id_info_2 = json.loads(gene_id_info)
+    gene_id = gene_id_info_2["id"]
+    region = gene_id_info_2["seq_region_name"]
+    start = gene_id_info_2["start"]
+    end = gene_id_info_2["end"]
+    gene_seq_info = get_connection("/sequence/id/" + gene_id)
+    gene_seq_info_2 = json.loads(gene_seq_info)
+    sequence = gene_seq_info_2["seq"]
+    return gene_id, sequence, region, start, end
+
+def info_seq(seq):
+    bases = "ACGT"
+    response = ""
+    response += f"Total length:{seq.len()}<br>"
+    for base, number in seq.count().items():
+        percentage = round(number / seq.len() * 100, 2)
+        print(f"{base}: {number} ({percentage}%)")
+        response += f"{base}: {number} ({percentage} %)<br>"
+    return response
 
 
 class TestHandler(http.server.BaseHTTPRequestHandler):
@@ -111,8 +134,22 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         # <----------------------| BASIC LEVEL |---------------------->
         # <----------------------| MEDIUM LEVEL |---------------------->
         elif path == "/geneSeq":
-
-            print()
+            gene = arguments["gene"][0]
+            gene_id, sequence, region, start, end = get_gene_info(gene)
+            contents = read_html_file("html/geneSeq.html").render(
+                context= {"seq": sequence, "gene": gene})
+        elif path == "/geneInfo":
+            gene = arguments["gene"][0]
+            gene_id, sequence, region, start, end = get_gene_info(gene)
+            contents = read_html_file("html/geneInfo.html").render(
+                context={"seq": sequence, "start": start, "end": end, "id": gene_id, "gene": gene, "loc": region,
+                         "len": len(sequence)})
+        elif path == "/geneCalc":
+            gene = arguments["gene"][0]
+            gene_id, sequence, region, start, end = get_gene_info(gene)
+            seq = Seq(sequence)
+            contents = read_html_file("html/geneCalc.html").render(
+                context={"seq": info_seq(seq), "gene": gene})
         else:
             contents = Path("html/error.html").read_text()
 
