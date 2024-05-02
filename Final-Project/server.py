@@ -6,16 +6,16 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 import jinja2 as j
 
-# Define the Server's port
 PORT = 8080
 
-# -- This is for preventing the error: "Port already in use"
 socketserver.TCPServer.allow_reuse_address = True
+
 
 def read_html_file(filename):
     contents = Path(filename).read_text()
     contents = j.Template(contents)
     return contents
+
 
 def get_connection(endpoint):
     SERVER = "rest.ensembl.org"
@@ -32,70 +32,87 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
 
         url_path = urlparse(self.path)
-        path = url_path.path  # we get it from here
+        path = url_path.path
         arguments = parse_qs(url_path.query)
 
         if path == "/":
             contents = Path("html/main.html").read_text()
+        # <----------------------| BASIC LEVEL |---------------------->
         elif path == "/listSpecies":
-            data = get_connection("/info/species")
+            if "limit" not in arguments:
+                contents = Path("html/error.html").read_text()
+            else:
+                data = get_connection("/info/species")
 
-            try:
-                limit = arguments["limit"][0]
-                info_1 = json.loads(data)
-                total = len(info_1["species"])
-                if int(limit) <= total:
-                    species = []
-                    for i in range(int(limit)):
-                        species.append(info_1["species"][i]["common_name"])
-                    contents = read_html_file("html/listspecies.html").render(context={"species": species, "len": total, "limit": limit})
-                else:
-                    contents = Path("html/error.html").read_text()
-            except ConnectionRefusedError:
-                print("ERROR! Cannot connect to the Server")
-                exit()
-        elif path == "/karyotype":
-            name_specie = arguments["species"][0]
-            url_name = name_specie.replace(" ", "%20")
-            data_1 = get_connection("/info/species")
-            info_1 = json.loads(data_1)
-            data_2 = get_connection("/info/assembly/" + url_name)
-
-            try:
-                species_names = []
-                for specie in info_1["species"]:
-                    species_names.append(specie["common_name"])
-                if name_specie in species_names:
-                    info_2 = json.loads(data_2)
-                    karyotype = info_2["karyotype"]
-                    contents = read_html_file("html/karyotype.html").render(context={"k": karyotype, "name": name_specie})
-                else:
-                    contents = Path("html/error.html").read_text()
-            except ConnectionRefusedError:
-                print("ERROR! Cannot connect to the Server")
-                exit()
-        elif path == "/chromosomeLength":
-            name_specie2 = arguments["species"][0]
-            chromosome = arguments["chromo"][0]
-            url_name = name_specie2.replace(" ", "%20")
-            data_1 = get_connection("/info/species")
-            info_1 = json.loads(data_1)
-            data_2 = get_connection("/info/assembly/" + url_name)
-            try:
-                species_names2 = []
-                for specie in info_1["species"]:
-                    species_names2.append(specie["common_name"])
-                    if name_specie2 in species_names2:
-                        info_3 = json.loads(data_2)
-                        for c in info_3["top_level_region"]:
-                            if c["coord_system"] == "chromosome" and chromosome == c["name"]:
-                                contents = read_html_file("html/chromosomelength.html").render(context={"len": c["length"]})
+                try:
+                    limit = arguments["limit"][0]
+                    info_1 = json.loads(data)
+                    total = len(info_1["species"])
+                    if int(limit) <= total:
+                        species = []
+                        for i in range(int(limit)):
+                            species.append(info_1["species"][i]["common_name"])
+                        contents = read_html_file("html/listspecies.html").render(
+                            context={"species": species, "len": total, "limit": limit})
                     else:
                         contents = Path("html/error.html").read_text()
-            except ConnectionRefusedError:
-                print("ERROR! Cannot connect to the Server")
-                exit()
+                except ConnectionRefusedError:
+                    print("ERROR! Cannot connect to the Server")
+                    exit()
+        elif path == "/karyotype":
+            if "species" not in arguments:
+                contents = Path("html/error.html").read_text()
+            else:
+                name_specie = arguments["species"][0]
+                url_name = name_specie.replace(" ", "%20")
+                data_1 = get_connection("/info/species")
+                info_1 = json.loads(data_1)
+                data_2 = get_connection("/info/assembly/" + url_name)
 
+                try:
+                    species_names = []
+                    for specie in info_1["species"]:
+                        species_names.append(specie["common_name"])
+                    if name_specie in species_names:
+                        info_2 = json.loads(data_2)
+                        karyotype = info_2["karyotype"]
+                        contents = read_html_file("html/karyotype.html").render(
+                            context={"k": karyotype, "name": name_specie})
+                    else:
+                        contents = Path("html/error.html").read_text()
+                except ConnectionRefusedError:
+                    print("ERROR! Cannot connect to the Server")
+                    exit()
+        elif path == "/chromosomeLength":
+            if "species" not in arguments or "chromo" not in arguments:
+                contents = Path("html/error.html").read_text()
+            else:
+                name_specie2 = arguments["species"][0]
+                chromosome = arguments["chromo"][0]
+                url_name = name_specie2.replace(" ", "%20")
+                data_1 = get_connection("/info/species")
+                info_1 = json.loads(data_1)
+                data_2 = get_connection("/info/assembly/" + url_name)
+                try:
+                    species_names2 = []
+                    for specie in info_1["species"]:
+                        species_names2.append(specie["common_name"])
+                        if name_specie2 in species_names2:
+                            info_3 = json.loads(data_2)
+                            for c in info_3["top_level_region"]:
+                                if c["coord_system"] == "chromosome" and chromosome == c["name"]:
+                                    contents = read_html_file("html/chromosomelength.html").render(
+                                        context={"len": c["length"]})
+                        else:
+                            contents = Path("html/error.html").read_text()
+                except ConnectionRefusedError:
+                    print("ERROR! Cannot connect to the Server")
+                    exit()
+        # <----------------------| BASIC LEVEL |---------------------->
+        # <----------------------| MEDIUM LEVEL |---------------------->
+        elif path == "/geneSeq":
+
+            print()
         else:
             contents = Path("html/error.html").read_text()
 
@@ -115,19 +132,11 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         return
 
 
-# ------------------------
-# - Server MAIN program
-# ------------------------
-# -- Set the new handler
 Handler = TestHandler
 
-# -- Open the socket server
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
-
     print("Serving at PORT", PORT)
 
-    # -- Main loop: Attend the client. Whenever there is a new
-    # -- clint, the handler is called
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
