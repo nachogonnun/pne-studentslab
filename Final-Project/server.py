@@ -27,6 +27,7 @@ def get_connection(endpoint):
     data = response.read().decode("utf-8")
     return data
 
+
 def get_gene_info(gene):
     gene_id_info = get_connection("/lookup/symbol/human/" + gene + "?")
     gene_id_info_2 = json.loads(gene_id_info)
@@ -38,6 +39,7 @@ def get_gene_info(gene):
     gene_seq_info_2 = json.loads(gene_seq_info)
     sequence = gene_seq_info_2["seq"]
     return gene_id, sequence, region, start, end
+
 
 def info_seq(seq):
     response = ""
@@ -59,11 +61,45 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
 
         if path == "/":
             contents = Path("html/main.html").read_text()
-        # <----------------------| BASIC LEVEL |---------------------->
+            self.close_server(contents)
         elif path == "/listSpecies":
-            if "limit" not in arguments:
-                contents = Path("html/error.html").read_text()
-            else:
+            self.get_listSpecies(path, arguments)
+        elif path == "/karyotype":
+            self.get_karyotype(path, arguments)
+        elif path == "/chromosomeLength":
+            self.get_chromosomeLength(path, arguments)
+        elif path == "/geneSeq":
+            self.get_geneSeq(path, arguments)
+        elif path == "/geneCalc":
+            self.get_geneCalc(path, arguments)
+        elif path == "/geneList":
+            self.get_geneList(path, arguments)
+        elif path == "/geneInfo":
+            self.get_geneInfo(path, arguments)
+        else:
+            contents = Path("html/error.html").read_text()
+            self.close_server(contents)
+
+    def close_server(self, contents):
+
+        self.send_response(200)  # -- Status line: OK!
+
+        # Define the content-type header:
+        self.send_header('Content-Type', 'text/html')
+        self.send_header('Content-Length', len(str.encode(contents)))
+
+        # The header is finished
+        self.end_headers()
+
+        # Send the response message
+        self.wfile.write(str.encode(contents))
+
+    # <----------------------| BASIC LEVEL |---------------------->
+    def get_listSpecies(self, path, arguments):
+
+        if path == "/listSpecies":
+            if "limit" in arguments:
+
                 data = get_connection("/info/species?")
 
                 try:
@@ -76,14 +112,30 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                             species.append(info_1["species"][i]["common_name"])
                         contents = read_html_file("html/listspecies.html").render(
                             context={"species": species, "len": total, "limit": limit})
+                        self.close_server(contents)
                     else:
                         contents = Path("html/error.html").read_text()
+                        self.close_server(contents)
                 except ConnectionRefusedError:
                     print("ERROR! Cannot connect to the Server")
                     exit()
-        elif path == "/karyotype":
+            elif "limit" not in arguments or arguments["limit"][0] == " ":
+                data = get_connection("/info/species?")
+                info = json.loads(data)
+                total = len(info["species"])
+                species = []
+                for i in range(0, total):
+                    species.append(info["species"][i]["common_name"])
+                contents = read_html_file("html/listspecies.html").render(
+                    context={"species": species, "len": total, "limit": "No limit established"})
+                self.close_server(contents)
+
+    def get_karyotype(self, path, arguments):
+
+        if path == "/karyotype":
             if "species" not in arguments:
                 contents = Path("html/error.html").read_text()
+                self.close_server(contents)
             else:
                 name_specie = arguments["species"][0]
                 url_name = name_specie.replace(" ", "%20")
@@ -100,14 +152,20 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                         karyotype = info_2["karyotype"]
                         contents = read_html_file("html/karyotype.html").render(
                             context={"k": karyotype, "name": name_specie})
+                        self.close_server(contents)
                     else:
                         contents = Path("html/error.html").read_text()
+                        self.close_server(contents)
                 except ConnectionRefusedError:
                     print("ERROR! Cannot connect to the Server")
                     exit()
-        elif path == "/chromosomeLength":
+
+    def get_chromosomeLength(self, path, arguments):
+
+        if path == "/chromosomeLength":
             if "species" not in arguments or "chromo" not in arguments:
                 contents = Path("html/error.html").read_text()
+                self.close_server(contents)
             else:
                 name_specie2 = arguments["species"][0]
                 chromosome = arguments["chromo"][0]
@@ -125,31 +183,45 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                                 if c["coord_system"] == "chromosome" and chromosome == c["name"]:
                                     contents = read_html_file("html/chromosomelength.html").render(
                                         context={"len": c["length"]})
-                        else:
-                            contents = Path("html/error.html").read_text()
+                                    self.close_server(contents)
                 except ConnectionRefusedError:
                     print("ERROR! Cannot connect to the Server")
                     exit()
-        # <----------------------| BASIC LEVEL |---------------------->
-        # <----------------------| MEDIUM LEVEL |---------------------->
-        elif path == "/geneSeq":
+
+    # <----------------------| BASIC LEVEL |---------------------->
+    # <----------------------| MEDIUM LEVEL |---------------------->
+    def get_geneSeq(self, path, arguments):
+
+        if path == "/geneSeq":
             gene = arguments["gene"][0]
             gene_id, sequence, region, start, end = get_gene_info(gene)
             contents = read_html_file("html/geneSeq.html").render(
                 context={"seq": sequence, "gene": gene})
-        elif path == "/geneInfo":
+            self.close_server(contents)
+
+    def get_geneInfo(self, path, arguments):
+
+        if path == "/geneInfo":
             gene = arguments["gene"][0]
             gene_id, sequence, region, start, end = get_gene_info(gene)
             contents = read_html_file("html/geneInfo.html").render(
                 context={"seq": sequence, "start": start, "end": end, "id": gene_id, "gene": gene, "loc": region,
                          "len": len(sequence)})
-        elif path == "/geneCalc":
+            self.close_server(contents)
+
+    def get_geneCalc(self, path, arguments):
+
+        if path == "/geneCalc":
             gene = arguments["gene"][0]
             gene_id, sequence, region, start, end = get_gene_info(gene)
             seq = Seq(sequence)
             contents = read_html_file("html/geneCalc.html").render(
                 context={"seq": info_seq(seq), "gene": gene})
-        elif path == "/geneList":
+            self.close_server(contents)
+
+    def get_geneList(self, path, arguments):
+
+        if path == "/geneList":
             gene_list = []
             chromosome = arguments["chromo"][0]
             startpoint = arguments["start"][0]
@@ -161,24 +233,8 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 gene_list.append(genes["external_name"])
             contents = read_html_file("html/geneList.html").render(
                 context={"list": gene_list, "start": startpoint, "end": endpoint})
+            self.close_server(contents)
         # <----------------------| MEDIUM LEVEL |---------------------->
-        else:
-            contents = Path("html/error.html").read_text()
-
-        # Generating the response message
-        self.send_response(200)  # -- Status line: OK!
-
-        # Define the content-type header:
-        self.send_header('Content-Type', 'text/html')
-        self.send_header('Content-Length', len(str.encode(contents)))
-
-        # The header is finished
-        self.end_headers()
-
-        # Send the response message
-        self.wfile.write(str.encode(contents))
-
-        return
 
 
 Handler = TestHandler
