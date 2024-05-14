@@ -1,59 +1,31 @@
 import http.client
 import json
-import termcolor
+
 PORT = 8080
 SERVER = 'localhost'
 
 print(f"\nConnecting to server: {SERVER}:{PORT}\n")
 
-# Connect with the server
 conn = http.client.HTTPConnection(SERVER, PORT)
 
-# -- Send the request message, using the GET method. We are
-# -- requesting the main page (/)
-try:
-    conn.request("GET", "/listusers")
-except ConnectionRefusedError:
-    print("ERROR! Cannot connect to the Server")
-    exit()
+url_s = "/listSpecies?json=1"
+url_s2 = "/listSpecies?limit=1&json=1"
+url_k = "/karyotype?species=Shrew+mouse&json=1"
+url_c = "/chromosomeLength?species=mouse&chromo=18&json=1"
+url_seq = "/geneSeq?gene=FRAT1&json=1"
+url_info = "/geneInfo?gene=FRAT1&json=1"
+url_calc = "/geneCalc?gene=FRAT1&json=1"
+url_list = "/geneList?chromo=9&start=22125500&end=22136000&json=1"
 
-# -- Read the response message from the server
-r1 = conn.getresponse()
+conn.request("GET", url_list)
 
-# -- Print the status line
-print(f"Response received!: {r1.status} {r1.reason}\n")
+response = conn.getresponse()
 
-# -- Read the response's body
-data1 = r1.read().decode("utf-8")
+print(f"Response received!: {response.status} {response.reason}\n")
 
-# -- Create a variable with the data,
-# -- form the JSON received
-people = json.loads(data1)
+server_information = response.read().decode("utf-8")
 
-for person in people:
-    print("CONTENT: ")
-
-    # Print the information in the object
-    print()
-    termcolor.cprint("Name: ", 'green', end="")
-    print(person['Firstname'], person['Lastname'])
-
-    termcolor.cprint("Age: ", 'green', end="")
-    print(person['age'])
-
-    # Get the phoneNumber list
-    phoneNumbers = person['phoneNumber']
-
-    # Print the number of elements int the list
-    termcolor.cprint("Phone numbers: ", 'green', end='')
-    print(len(phoneNumbers))
-
-    # Print all the numbers
-    for i, num in enumerate(phoneNumbers):
-        termcolor.cprint("  Phone {}:".format(i), 'blue')
-
-        # The element num contains 2 fields: number and type
-        termcolor.cprint("    Type: ", 'red', end='')
-        print(num['type'])
-        termcolor.cprint("    Number: ", 'red', end='')
-        print(num['number'])
+json_object = json.loads(server_information)
+print("Data received from IGNACIO'S server:")
+print()
+print(json.dumps(json_object, indent=4))

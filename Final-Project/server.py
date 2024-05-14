@@ -27,8 +27,8 @@ def get_connection(endpoint):
     data = response.read().decode("utf-8")
     return data
 
-
 def get_gene_info(gene):
+
     gene_id_info = get_connection("/lookup/symbol/human/" + gene + "?")
     gene_id_info_2 = json.loads(gene_id_info)
     gene_id = gene_id_info_2["id"]
@@ -49,8 +49,6 @@ def info_seq(seq):
         print(f"{base}: {number} ({percentage}%)")
         response += f"{base}: {number} ({percentage} %)<br>"
     return response
-
-
 class TestHandler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):
@@ -59,23 +57,89 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         path = url_path.path
         arguments = parse_qs(url_path.query)
 
+        def send_json_info(json_object):
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json_object.encode())
+            self.wfile.close()
+
+
         if path == "/":
             contents = Path("html/main.html").read_text()
             self.close_server(contents)
         elif path == "/listSpecies":
-            self.get_listSpecies(path, arguments)
+            species, total, limit = self.get_listSpecies(path, arguments)
+            if "json=1" in url_path.query:
+                if "limit" in arguments:
+                    json_object = json.dumps({"species": species[:int(limit)], "total": total, "limit": limit})
+                else:
+                    json_object = json.dumps({"species": species, "total": total, "limit": limit})
+                send_json_info(json_object)
+            else:
+                contents = read_html_file("html/listspecies.html").render(
+                    context={"species": species, "len": total, "limit": limit})
+                self.close_server(contents)
         elif path == "/karyotype":
-            self.get_karyotype(path, arguments)
+            karyotype, name_specie = self.get_karyotype(path, arguments)
+            if "json=1" in url_path.query:
+                json_object = json.dumps({"name specie": name_specie, "karyotype": karyotype})
+                send_json_info(json_object)
+            else:
+                contents = read_html_file("html/karyotype.html").render(
+                    context={"k": karyotype, "name": name_specie})
+                self.close_server(contents)
         elif path == "/chromosomeLength":
-            self.get_chromosomeLength(path, arguments)
+            specie, chromo, length = self.get_chromosomeLength(path, arguments)
+            if "json=1" in url_path.query:
+                json_object = json.dumps({"name specie": specie, "chromosome": chromo, "length": length})
+                send_json_info(json_object)
+            else:
+                contents = read_html_file("html/chromosomelength.html").render(
+                    context={"len": length})
+                self.close_server(contents)
         elif path == "/geneSeq":
-            self.get_geneSeq(path, arguments)
+            gene, sequence = self.get_geneSeq(path, arguments)
+            if "json=1" in url_path.query:
+                json_object = json.dumps({"gene": gene, "sequence": sequence})
+                send_json_info(json_object)
+            else:
+                contents = read_html_file("html/geneSeq.html").render(
+                    context={"seq": sequence, "gene": gene})
+                self.close_server(contents)
         elif path == "/geneCalc":
-            self.get_geneCalc(path, arguments)
+            gene, sequence = self.get_geneCalc(path, arguments)
+            if "json=1" in url_path.query:
+                seq = Seq(sequence)
+                json_object = json.dumps({"gene":gene, "Calc": info_seq(seq)})
+                send_json_info(json_object)
+            else:
+                seq = Seq(sequence)
+                contents = read_html_file("html/geneCalc.html").render(
+                    context={"seq": info_seq(seq), "gene": gene})
+                self.close_server(contents)
         elif path == "/geneList":
-            self.get_geneList(path, arguments)
+            gene_list, startpoint, endpoint = self.get_geneList(path, arguments)
+            if "json=1" in url_path.query:
+                json_object = json.dumps({"list": gene_list, "start": startpoint, "end": endpoint})
+                send_json_info(json_object)
+            else:
+                contents = read_html_file("html/geneList.html").render(
+                    context={"list": gene_list, "start": startpoint, "end": endpoint})
+                self.close_server(contents)
+
         elif path == "/geneInfo":
-            self.get_geneInfo(path, arguments)
+            sequence, start, end, gene_id, gene, region = self.get_geneInfo(path, arguments)
+            if "json=1" in url_path.query:
+                json_object = json.dumps(
+                    {"sequence": sequence, "start": start, "end": end, "gene": gene, "location": region,
+                     "length": len(sequence)})
+                send_json_info(json_object)
+            else:
+                contents = read_html_file("html/geneInfo.html").render(
+                    context={"seq": sequence, "start": start, "end": end, "id": gene_id, "gene": gene, "loc": region,
+                             "len": len(sequence)})
+                self.close_server(contents)
         else:
             contents = Path("html/error.html").read_text()
             self.close_server(contents)
@@ -98,37 +162,25 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
     def get_listSpecies(self, path, arguments):
 
         if path == "/listSpecies":
-            if "limit" in arguments:
+            data = get_connection("/info/species?")
+            info = json.loads(data)
+            total = len(info["species"])
+            species = []
 
-                data = get_connection("/info/species?")
-
-                try:
-                    limit = arguments["limit"][0]
-                    info_1 = json.loads(data)
-                    total = len(info_1["species"])
-                    if int(limit) <= total:
-                        species = []
-                        for i in range(int(limit)):
-                            species.append(info_1["species"][i]["common_name"])
-                        contents = read_html_file("html/listspecies.html").render(
-                            context={"species": species, "len": total, "limit": limit})
-                        self.close_server(contents)
-                    else:
-                        contents = Path("html/error.html").read_text()
-                        self.close_server(contents)
-                except ConnectionRefusedError:
-                    print("ERROR! Cannot connect to the Server")
-                    exit()
-            elif "limit" not in arguments or arguments["limit"][0] == " ":
-                data = get_connection("/info/species?")
-                info = json.loads(data)
-                total = len(info["species"])
-                species = []
-                for i in range(0, total):
+            if "limit" in arguments and arguments["limit"][0].isdigit():
+                limit = int(arguments["limit"][0])
+                if limit <= total:
+                    for i in range(limit):
+                        species.append(info["species"][i]["common_name"])
+                    return species, total, limit
+                else:
+                    contents = Path("html/error.html").read_text()
+                    self.close_server(contents)
+            else:
+                for i in range(total):
                     species.append(info["species"][i]["common_name"])
-                contents = read_html_file("html/listspecies.html").render(
-                    context={"species": species, "len": total, "limit": "No limit established"})
-                self.close_server(contents)
+                return species, total, "No limit established"
+
 
     def get_karyotype(self, path, arguments):
 
@@ -150,9 +202,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                     if name_specie in species_names:
                         info_2 = json.loads(data_2)
                         karyotype = info_2["karyotype"]
-                        contents = read_html_file("html/karyotype.html").render(
-                            context={"k": karyotype, "name": name_specie})
-                        self.close_server(contents)
+                        return karyotype, name_specie
                     else:
                         contents = Path("html/error.html").read_text()
                         self.close_server(contents)
@@ -181,9 +231,8 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                             info_3 = json.loads(data_2)
                             for c in info_3["top_level_region"]:
                                 if c["coord_system"] == "chromosome" and chromosome == c["name"]:
-                                    contents = read_html_file("html/chromosomelength.html").render(
-                                        context={"len": c["length"]})
-                                    self.close_server(contents)
+                                    length = c["length"]
+                                    return name_specie2, chromosome, length
                 except ConnectionRefusedError:
                     print("ERROR! Cannot connect to the Server")
                     exit()
@@ -195,29 +244,21 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         if path == "/geneSeq":
             gene = arguments["gene"][0]
             gene_id, sequence, region, start, end = get_gene_info(gene)
-            contents = read_html_file("html/geneSeq.html").render(
-                context={"seq": sequence, "gene": gene})
-            self.close_server(contents)
+            return gene, sequence
 
     def get_geneInfo(self, path, arguments):
 
         if path == "/geneInfo":
             gene = arguments["gene"][0]
             gene_id, sequence, region, start, end = get_gene_info(gene)
-            contents = read_html_file("html/geneInfo.html").render(
-                context={"seq": sequence, "start": start, "end": end, "id": gene_id, "gene": gene, "loc": region,
-                         "len": len(sequence)})
-            self.close_server(contents)
+            return sequence, start, end, gene_id, gene, region
 
     def get_geneCalc(self, path, arguments):
 
         if path == "/geneCalc":
             gene = arguments["gene"][0]
             gene_id, sequence, region, start, end = get_gene_info(gene)
-            seq = Seq(sequence)
-            contents = read_html_file("html/geneCalc.html").render(
-                context={"seq": info_seq(seq), "gene": gene})
-            self.close_server(contents)
+            return gene, sequence
 
     def get_geneList(self, path, arguments):
 
@@ -231,9 +272,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             gene_info = json.loads(genes_data)
             for genes in gene_info:
                 gene_list.append(genes["external_name"])
-            contents = read_html_file("html/geneList.html").render(
-                context={"list": gene_list, "start": startpoint, "end": endpoint})
-            self.close_server(contents)
+            return gene_list, startpoint, endpoint
         # <----------------------| MEDIUM LEVEL |---------------------->
 
 
@@ -246,5 +285,5 @@ with socketserver.TCPServer(("", PORT), Handler) as httpd:
         httpd.serve_forever()
     except KeyboardInterrupt:
         print("")
-        print("Stoped by the user")
+        print("Stopped by the user")
         httpd.server_close()
