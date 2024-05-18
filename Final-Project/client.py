@@ -11,6 +11,7 @@ conn = http.client.HTTPConnection(SERVER, PORT)
 URLS = [
     "/listSpecies?json=1",
     "/listSpecies?limit=10&json=1",
+    "/karyotype?species=mouse&json=1",
     "/karyotype?species=Shrew+mouse&json=1",
     "/chromosomeLength?species=mouse&chromo=18&json=1",
     "/geneSeq?gene=FRAT1&json=1",
